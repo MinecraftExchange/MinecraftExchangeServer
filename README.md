@@ -7,4 +7,4 @@ then submit its buy and sell offers to the Economy Server after a given interval
 all of the transactions that can be completed are finished, the Economy Server will then update the prices to reflect
 the new state of the economy.
 
-## This is an Economy Client for Bukkit
+## This is an Economy Server standalone.
