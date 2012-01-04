@@ -6,8 +6,9 @@ public class Main {
 	 * @param args
 	 */
 	public static void main(String[] args) {
-		// TODO Auto-generated method stub
-
+		ExchangeServer es = ExchangeServer.getInstance();
+		es.loadProperties(args);
+		new Thread(es).start();
 	}
 
 }
