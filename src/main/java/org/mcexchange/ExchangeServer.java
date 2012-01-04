@@ -2,13 +2,16 @@ package org.mcexchange;
 
 import java.io.IOException;
 import java.net.ServerSocket;
+import java.util.ArrayList;
 
 public class ExchangeServer implements Runnable {
 	//the one instance of ExchangeServer
 	private static final ExchangeServer es = new ExchangeServer();
-	public static int port = 25564;
+	//default, converted from MCXCG using phone letter/number system
+	public static int port = 62924;
 	ServerSocket socket = null;
 	boolean listening = false;
+	ArrayList<Thread> connections = new ArrayList<Thread>();
 	
 	/**
 	 * Gets the singleton instance of ExchangeServer.
@@ -47,6 +50,7 @@ public class ExchangeServer implements Runnable {
 	public void bind(int bindPort) {
 		try {
 			socket = new ServerSocket(bindPort);
+			System.out.printf("Successfully bound to port: %d.\n", port);
 		}
 		catch (IOException e) {
 			System.err.printf("Could not bind to port: %d.\n", port);
@@ -60,9 +64,13 @@ public class ExchangeServer implements Runnable {
 	 */
 	public void listen() {
 		listening = true;
+		System.out.println("Listening for client connections.");
 		while(listening) {
 			try {
-				new Thread(new ClientConnection(socket.accept())).start();
+				Thread t = new Thread(new ClientConnection(socket.accept()));
+				t.start();
+				connections.add(t);
+				System.out.println("Succesfully connected to client.");
 			}
 			catch (IOException e) {
 				System.err.println("Could not connect to client.");
