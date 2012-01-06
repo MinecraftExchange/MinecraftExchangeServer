@@ -23,12 +23,15 @@ public class ServerProperties extends Properties {
 	@SuppressWarnings("serial")
 	private static final Properties defaults = new Properties() {{
 		//set all default properties here.
+		
+		//converted from MCXCG using phone letter/number system
+		setProperty("port", "62924");
 	}};
 	private final Properties override;
 	
 	public ServerProperties(String[] override) {
 		super(defaults);
-		File f = new File("exchange.yml");
+		File f = new File("exchange.properties");
 		if(f.exists()) {
 			try {
 				InputStream is = new BufferedInputStream(new FileInputStream(f));
@@ -39,7 +42,7 @@ public class ServerProperties extends Properties {
 		} else {
 			try {
 				OutputStream os = new BufferedOutputStream(new FileOutputStream(f));
-				this.store(os, "");
+				defaults.store(os, "");
 			} catch(Exception e) {
 				e.printStackTrace();
 			}
