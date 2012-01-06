@@ -69,10 +69,10 @@ public class ExchangeServer implements Runnable {
 	public void bind(int bindPort) {
 		try {
 			socket = new ServerSocket(bindPort);
-			System.out.println("Successfully bound to port: "+port+".");
+			System.out.println("Successfully bound to port: "+bindPort+".");
 		}
 		catch (IOException e) {
-			System.err.println("Could not bind to port: "+port+".");
+			System.err.println("Could not bind to port: "+bindPort+".");
 			e.printStackTrace();
 			System.exit(1);
 		}
