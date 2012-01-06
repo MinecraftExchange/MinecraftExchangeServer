@@ -69,6 +69,7 @@ public class ClientConnection implements Runnable {
 			System.err.println("Unable to disconnect client:");
 			e.printStackTrace();
 		}
+		System.out.println("Successfully disconnected from client " +  this);
 	}
 	
 	/**
