@@ -42,12 +42,12 @@ public class ServerProperties extends Properties {
 		} else {
 			try {
 				OutputStream os = new BufferedOutputStream(new FileOutputStream(f));
-				defaults.store(os, "");
+				defaults.store(os, null);
 			} catch(Exception e) {
 				e.printStackTrace();
 			}
 		}
-		this.override = new Properties(this);
+		this.override = new Properties((Properties)this.clone());
 		
 		for(String s : override) {
 			int divide = s.indexOf("=");
@@ -60,12 +60,12 @@ public class ServerProperties extends Properties {
 	
 	@Override
 	public Object put(Object key, Object value) {
-		super.put(key, value);
-		return override.put(key, value);
+		Object temp = super.put(key, value);
+		return override == null ? temp : override.put(key, value);
 	}
 	
 	@Override
 	public String getProperty(String key) {
-		return override.getProperty(key);
+		return override == null ? super.getProperty(key) : override.getProperty(key);
 	}
 }

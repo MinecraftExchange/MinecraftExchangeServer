@@ -35,8 +35,8 @@ public class ClientConnection implements Runnable {
 		} catch(IOException e) {
 			e.printStackTrace();
 		} catch(NullPointerException e) {
-			System.out.println("Client " + this + " received an un-registered packet!");
-			System.out.println("Kicking client...");
+			System.err.println("Client " + this + " received an un-registered packet!");
+			System.err.println("Kicking client...");
 			disconnect();
 		}
 		return null;
@@ -49,7 +49,7 @@ public class ClientConnection implements Runnable {
 		try {
 			socket.close();
 		} catch (IOException e) {
-			System.out.println("Unable to disconnect client:");
+			System.err.println("Unable to disconnect client:");
 			e.printStackTrace();
 		}
 	}
@@ -65,7 +65,7 @@ public class ClientConnection implements Runnable {
 		} catch(IOException e) {
 			e.printStackTrace();
 		} catch(NullPointerException e) {
-			System.out.println("Tried to send an unregistered packet to Client " + this + "!");
+			System.err.println("Tried to send an unregistered packet to Client " + this + "!");
 			disconnect();
 		}
 		
