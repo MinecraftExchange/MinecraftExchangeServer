@@ -6,7 +6,7 @@ import java.io.OutputStream;
 import org.apache.commons.collections.BidiMap;
 import org.apache.commons.collections.bidimap.DualHashBidiMap;
 
-public abstract class Packet {
+public abstract class Packet implements Runnable {
 	//packet map.
 	private static final BidiMap packets = new DualHashBidiMap();
 	private final ClientConnection cc;
@@ -63,9 +63,4 @@ public abstract class Packet {
 	 * Writes the Packet to the stream.
 	 */
 	public abstract void write(OutputStream s);
-	
-	/**
-	 * Perform the Packet's actions.
-	 */
-	public abstract void run();
 }

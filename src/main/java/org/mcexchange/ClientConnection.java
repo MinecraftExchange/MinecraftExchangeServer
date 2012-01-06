@@ -6,6 +6,8 @@ import java.io.IOException;
 import java.net.Socket;
 
 public class ClientConnection implements Runnable {
+	private final RegisteredPackets rp;
+	
 	private final Socket socket;
 	private final DataInputStream in;
 	private final DataOutputStream out;
@@ -17,6 +19,8 @@ public class ClientConnection implements Runnable {
 	 * the client.
 	 */
 	public ClientConnection(Socket socket) throws IOException {
+		rp = new RegisteredPackets(this);
+		
 		this.socket = socket;
 		in = new DataInputStream(socket.getInputStream());
 		out = new DataOutputStream(socket.getOutputStream());
@@ -37,6 +41,7 @@ public class ClientConnection implements Runnable {
 		} catch(NullPointerException e) {
 			System.err.println("Client " + this + " received an un-registered packet!");
 			System.err.println("Kicking client...");
+			sendPacket(rp.getDisconnect());
 			disconnect();
 		}
 		return null;
@@ -46,6 +51,18 @@ public class ClientConnection implements Runnable {
 	 * Closes the connection.
 	 */
 	public void disconnect() {
+		try {
+			in.close();
+		} catch(IOException e) {
+			System.err.println("Unable to close input stream.");
+			e.printStackTrace();
+		}
+		try {
+			out.close();
+		} catch(IOException e) {
+			System.err.println("Unable to close output stream");
+			e.printStackTrace();
+		}
 		try {
 			socket.close();
 		} catch (IOException e) {
@@ -66,7 +83,6 @@ public class ClientConnection implements Runnable {
 			e.printStackTrace();
 		} catch(NullPointerException e) {
 			System.err.println("Tried to send an unregistered packet to Client " + this + "!");
-			disconnect();
 		}
 		
 	}
@@ -79,5 +95,7 @@ public class ClientConnection implements Runnable {
 			Packet recieved = readPacket();
 			recieved.run();
 		}
+		sendPacket(rp.getDisconnect());
+		disconnect();
 	}
 }
