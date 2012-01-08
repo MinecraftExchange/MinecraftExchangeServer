@@ -6,7 +6,7 @@ import java.io.IOException;
 import java.net.Socket;
 
 public class ClientConnection implements Runnable {
-	private final RegisteredPackets rp;
+	public final RegisteredPackets registeredPackets;
 	
 	private final Socket socket;
 	private final DataInputStream in;
@@ -19,7 +19,7 @@ public class ClientConnection implements Runnable {
 	 * the client.
 	 */
 	public ClientConnection(Socket socket) throws IOException {
-		rp = new RegisteredPackets(this);
+		registeredPackets = new RegisteredPackets(this);
 		
 		this.socket = socket;
 		in = new DataInputStream(socket.getInputStream());
@@ -35,13 +35,14 @@ public class ClientConnection implements Runnable {
 			byte b = in.readByte();
 			Packet p = Packet.getPacket(b);
 			p.read(in);
+			System.out.println("Recieved packet: " + b);
 			return p;
 		} catch(IOException e) {
 			e.printStackTrace();
 		} catch(NullPointerException e) {
 			System.err.println("Client " + this + " received an un-registered packet!");
 			System.err.println("Kicking client...");
-			sendPacket(rp.getDisconnect());
+			sendPacket(registeredPackets.getDisconnect());
 			disconnect();
 		}
 		return null;
@@ -51,18 +52,6 @@ public class ClientConnection implements Runnable {
 	 * Closes the connection.
 	 */
 	public void disconnect() {
-		try {
-			in.close();
-		} catch(IOException e) {
-			System.err.println("Unable to close input stream.");
-			e.printStackTrace();
-		}
-		try {
-			out.close();
-		} catch(IOException e) {
-			System.err.println("Unable to close output stream");
-			e.printStackTrace();
-		}
 		try {
 			socket.close();
 		} catch (IOException e) {
@@ -80,6 +69,7 @@ public class ClientConnection implements Runnable {
 			byte id = Packet.getId(p);
 			out.writeByte(id);
 			p.write(out);
+			System.out.println("Sent packet: " + id);
 		} catch(IOException e) {
 			e.printStackTrace();
 		} catch(NullPointerException e) {
@@ -96,7 +86,7 @@ public class ClientConnection implements Runnable {
 			Packet recieved = readPacket();
 			recieved.run();
 		}
-		sendPacket(rp.getDisconnect());
+		sendPacket(registeredPackets.getDisconnect());
 		disconnect();
 	}
 }

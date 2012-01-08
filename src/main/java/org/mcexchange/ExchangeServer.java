@@ -30,9 +30,10 @@ public class ExchangeServer implements Runnable {
 	private boolean listening = false;
 	private int port = DEFAULT_PORT;
 	private ServerSocket socket = null;
-	private ArrayList<Thread> connections = new ArrayList<Thread>();
+	private final ArrayList<Thread> threads = new ArrayList<Thread>();
+	private final ArrayList<ClientConnection> connections = new ArrayList<ClientConnection>();
 	
-	//private constructor ensuring that es is the only instance.
+	//private constructor ensuring that this is the only instance.
 	private ExchangeServer() {
 	}
 	
@@ -54,11 +55,20 @@ public class ExchangeServer implements Runnable {
 	}
 	
 	/**
+	 * Obtains a reference to the threads the client connections are running
+	 * in. It is important to note that this list is NOT copied so any changes
+	 * here will affect the whole server.
+	 */
+	public List<Thread> getThreads() {
+		return threads;
+	}
+	
+	/**
 	 * Obtains a reference to the client connections. It is important to note
 	 * that this list is NOT copied so any changes here will affect the whole
 	 * Server.
 	 */
-	public List<Thread> getConnections() {
+	public List<ClientConnection> getConnections() {
 		return connections;
 	}
 	
@@ -70,8 +80,7 @@ public class ExchangeServer implements Runnable {
 		try {
 			socket = new ServerSocket(bindPort);
 			System.out.println("Successfully bound to port: "+bindPort+".");
-		}
-		catch (IOException e) {
+		} catch (IOException e) {
 			System.err.println("Could not bind to port: "+bindPort+".");
 			e.printStackTrace();
 			System.exit(1);
@@ -89,7 +98,7 @@ public class ExchangeServer implements Runnable {
 				ClientConnection cc = new ClientConnection(socket.accept());
 				Thread t = new Thread(cc);
 				t.start();
-				connections.add(t);
+				threads.add(t);
 				System.out.println("Succesfully connected to client " + cc);
 			} catch (IOException e) {
 				System.err.println("Could not connect to client.");
@@ -109,5 +118,16 @@ public class ExchangeServer implements Runnable {
 		}
 		bind(port);
 		listen();
+	}
+	
+	/**
+	 * Send a message to every client.
+	 */
+	public void broadcastMessage(String message) {
+		for(ClientConnection c : connections) {
+			MessagePacket mp = c.registeredPackets.getMessage();
+			mp.setMessage(message);
+			c.sendPacket(mp);
+		}
 	}
 }

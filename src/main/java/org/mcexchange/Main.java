@@ -39,6 +39,8 @@ public class Main {
 			String s = scan.nextLine();
 			if(s.equalsIgnoreCase("stop")) {//better option here one of these days. ;)
 				shutdown(t, es);
+			} else {
+				es.broadcastMessage(s);
 			}
 		}
 	}
@@ -50,12 +52,13 @@ public class Main {
 	 */
 	public static void shutdown(Thread t, ExchangeServer es) {
 		System.out.println("Disconnecting from clients.");
-		for(Thread thread : es.getConnections()) {
+		for(Thread thread : es.getThreads()) {
 			thread.interrupt();
 		}
 		System.out.println("Shutting down server.");
 		t.interrupt();
 		System.exit(0);
+		//we don't want to exit. The Threads need a chance to shut down.
 	}
 	
 	/**
