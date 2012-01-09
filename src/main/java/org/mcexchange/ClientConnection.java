@@ -35,7 +35,6 @@ public class ClientConnection implements Runnable {
 			byte b = in.readByte();
 			Packet p = Packet.getPacket(b);
 			p.read(in);
-			System.out.println("Recieved packet: " + b);
 			return p;
 		} catch(IOException e) {
 			e.printStackTrace();
@@ -69,7 +68,6 @@ public class ClientConnection implements Runnable {
 			byte id = Packet.getId(p);
 			out.writeByte(id);
 			p.write(out);
-			System.out.println("Sent packet: " + id);
 		} catch(IOException e) {
 			e.printStackTrace();
 		} catch(NullPointerException e) {

@@ -98,6 +98,7 @@ public class ExchangeServer implements Runnable {
 				ClientConnection cc = new ClientConnection(socket.accept());
 				Thread t = new Thread(cc);
 				t.start();
+				connections.add(cc);
 				threads.add(t);
 				System.out.println("Succesfully connected to client " + cc);
 			} catch (IOException e) {
