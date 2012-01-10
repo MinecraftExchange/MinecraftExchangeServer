@@ -1,8 +1,8 @@
 package org.mcexchange;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 
 public class JoinLeavePacket extends Packet {
 	//true for join, false for leave
@@ -19,15 +19,19 @@ public class JoinLeavePacket extends Packet {
 	}
 
 	@Override
-	public void read(DataInputStream s) throws IOException {
-		setType(s.readBoolean());
-		setNetwork(s.readUTF());
+	public void read(SocketChannel s) throws IOException {
+		ByteBuffer b = ByteBuffer.allocate(1);
+		readFull(s,b);
+		setType(b.get()==1);
+		setNetwork(readString(s));
 	}
 
 	@Override
-	public void write(DataOutputStream s) throws IOException {
-		s.writeBoolean(type);
-		s.writeUTF(network);
+	public void write(SocketChannel s) throws IOException {
+		ByteBuffer b = ByteBuffer.allocate(1);
+		b.put((byte) (getType() ? 1 : 0));
+		writeFull(s,b);
+		writeString(s, network);
 	}
 	
 	public boolean getType() {
