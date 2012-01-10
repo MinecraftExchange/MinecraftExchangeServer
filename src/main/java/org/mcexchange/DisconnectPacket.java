@@ -1,7 +1,6 @@
 package org.mcexchange;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
+import java.nio.channels.SocketChannel;
 
 /**
  * Signifies disconnection.
@@ -19,9 +18,9 @@ public class DisconnectPacket extends Packet {
 	}
 
 	@Override
-	public void read(DataInputStream s) { }
+	public void read(SocketChannel s) { }
 
 	@Override
-	public void write(DataOutputStream s) { }
+	public void write(SocketChannel s) { }
 	
 }

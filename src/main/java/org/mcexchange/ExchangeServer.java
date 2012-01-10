@@ -1,7 +1,8 @@
 package org.mcexchange;
 
 import java.io.IOException;
-import java.net.ServerSocket;
+import java.net.InetSocketAddress;
+import java.nio.channels.ServerSocketChannel;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -29,7 +30,7 @@ public class ExchangeServer implements Runnable {
 	private ServerProperties sp;
 	private boolean listening = false;
 	private int port = DEFAULT_PORT;
-	private ServerSocket socket = null;
+	private ServerSocketChannel socket = null;
 	private final ArrayList<Thread> threads = new ArrayList<Thread>();
 	private final ArrayList<ClientConnection> connections = new ArrayList<ClientConnection>();
 	
@@ -78,7 +79,8 @@ public class ExchangeServer implements Runnable {
 	 */
 	public void bind(int bindPort) {
 		try {
-			socket = new ServerSocket(bindPort);
+		    socket = ServerSocketChannel.open();
+		    socket.socket().bind(new InetSocketAddress(bindPort));
 			System.out.println("Successfully bound to port: "+bindPort+".");
 		} catch (IOException e) {
 			System.err.println("Could not bind to port: "+bindPort+".");

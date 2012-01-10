@@ -1,16 +1,15 @@
 package org.mcexchange;
 
-import java.io.DataInputStream;
-import java.io.DataOutputStream;
 import java.io.IOException;
-import java.net.Socket;
+import java.nio.ByteBuffer;
+import java.nio.channels.SocketChannel;
 
 public class ClientConnection implements Runnable {
 	public final RegisteredPackets registeredPackets;
 	
-	private final Socket socket;
-	private final DataInputStream in;
-	private final DataOutputStream out;
+	private final SocketChannel channel;
+	private final ByteBuffer readId = ByteBuffer.allocateDirect(1);
+	private final ByteBuffer writeId = ByteBuffer.allocateDirect(1);
 	
 	/**
 	 * Creates a new connection with the given client.
@@ -18,12 +17,11 @@ public class ClientConnection implements Runnable {
 	 * @throws IOException If there is an error opening a connection to
 	 * the client.
 	 */
-	public ClientConnection(Socket socket) throws IOException {
+	public ClientConnection(SocketChannel channel) throws IOException {
 		registeredPackets = new RegisteredPackets(this);
 		
-		this.socket = socket;
-		in = new DataInputStream(socket.getInputStream());
-		out = new DataOutputStream(socket.getOutputStream());
+		this.channel = channel;
+		System.out.println(channel);
 	}
 	
 	/**
@@ -32,17 +30,19 @@ public class ClientConnection implements Runnable {
 	 */
 	public Packet readPacket() {
 		try {
-			byte b = in.readByte();
-			Packet p = Packet.getPacket(b);
-			p.read(in);
+			readId.clear();
+			channel.read(readId);
+			readId.flip();
+			Packet p = Packet.getPacket(readId.get());
+			p.read(channel);
 			return p;
 		} catch(IOException e) {
 			e.printStackTrace();
 		} catch(NullPointerException e) {
+			e.printStackTrace();
 			System.err.println("Client " + this + " received an un-registered packet!");
 			System.err.println("Kicking client...");
-			sendPacket(registeredPackets.getDisconnect());
-			disconnect();
+			Thread.currentThread().interrupt();
 		}
 		return null;
 	}
@@ -52,7 +52,7 @@ public class ClientConnection implements Runnable {
 	 */
 	public void disconnect() {
 		try {
-			socket.close();
+			channel.close();
 		} catch (IOException e) {
 			System.err.println("Unable to disconnect client:");
 			e.printStackTrace();
@@ -65,9 +65,11 @@ public class ClientConnection implements Runnable {
 	 */
 	public void sendPacket(Packet p) {
 		try {
-			byte id = Packet.getId(p);
-			out.writeByte(id);
-			p.write(out);
+			writeId.clear();
+			writeId.put(Packet.getId(p));
+			writeId.flip();
+			channel.write(writeId);
+			p.write(channel);
 		} catch(IOException e) {
 			e.printStackTrace();
 		} catch(NullPointerException e) {
