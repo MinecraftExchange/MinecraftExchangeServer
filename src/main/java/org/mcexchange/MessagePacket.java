@@ -1,7 +1,7 @@
 package org.mcexchange;
 
 import java.io.IOException;
-import java.nio.channels.SocketChannel;
+import java.nio.ByteBuffer;
 
 public class MessagePacket extends Packet {
 	private String message;
@@ -15,13 +15,13 @@ public class MessagePacket extends Packet {
 	}
 
 	@Override
-	public void read(SocketChannel s) throws IOException {
-		message = readString(s);
+	public void read(ByteBuffer s) throws IOException {
+		message = NioUtil.readString(s);
 	}
 
 	@Override
-	public void write(SocketChannel s) throws IOException {
-		writeString(s, message);
+	public void write(ByteBuffer s) throws IOException {
+		NioUtil.writeString(s, message);
 	}
 
 	public void setMessage(String message) {

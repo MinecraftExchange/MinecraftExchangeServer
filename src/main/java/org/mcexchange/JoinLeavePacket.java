@@ -2,7 +2,6 @@ package org.mcexchange;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 
 public class JoinLeavePacket extends Packet {
 	//true for join, false for leave
@@ -19,19 +18,15 @@ public class JoinLeavePacket extends Packet {
 	}
 
 	@Override
-	public void read(SocketChannel s) throws IOException {
-		ByteBuffer b = ByteBuffer.allocate(1);
-		readFull(s,b);
-		setType(b.get()==1);
-		setNetwork(readString(s));
+	public void read(ByteBuffer s) throws IOException {
+		setType(NioUtil.readBooleans(s, 1)[0]);
+		setNetwork(NioUtil.readString(s));
 	}
 
 	@Override
-	public void write(SocketChannel s) throws IOException {
-		ByteBuffer b = ByteBuffer.allocate(1);
-		b.put((byte) (getType() ? 1 : 0));
-		writeFull(s,b);
-		writeString(s, network);
+	public void write(ByteBuffer s) throws IOException {
+		NioUtil.writeBooleans(s, getType());
+		NioUtil.writeString(s, network);
 	}
 	
 	public boolean getType() {

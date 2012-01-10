@@ -2,7 +2,6 @@ package org.mcexchange;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.nio.channels.SocketChannel;
 
 import org.apache.commons.collections.BidiMap;
 import org.apache.commons.collections.bidimap.DualHashBidiMap;
@@ -54,63 +53,17 @@ public abstract class Packet implements Runnable {
 	}
 	
 	/**
-	 * Utility method for filling the remainder of the given ByteBuffer with
-	 * data read from the given channel.
-	 * @throws IOException 
+	 * Reads the Packet's data from the buffer. The buffer is at position 0
+	 * when given and is filled with the packet's data.
 	 */
-	public final void readFull(SocketChannel s, ByteBuffer b) throws IOException {
-		while(b.remaining()>0) s.read(b);
-	}
+	public abstract void read(ByteBuffer b) throws IOException;
 	
 	/**
-	 * Utility method for writing the remainder of the given ByteBuffer to the
-	 * given channel.
-	 * @throws IOException 
+	 * Writes the Packet to the buffer. The buffer is at position 3 if no
+	 * length has been specified for this packet, or 1 if one has. The first
+	 * 3 bytes will be filled in once the data has been written, so don't
+	 * store anything there. On a side note, each packet is limited to 500
+	 * bytes including the initial 1 or 3.
 	 */
-	public final void writeFull(SocketChannel s, ByteBuffer b) throws IOException {
-		while(b.remaining()>0) s.write(b);
-	}
-	
-	/**
-	 * Utility method for reading a String from a SocketChannel.
-	 * @throws IOException 
-	 */
-	public final String readString(SocketChannel s) throws IOException {
-		ByteBuffer b = ByteBuffer.allocate(2);
-		readFull(s,b);
-		b.flip();
-		short size = b.getShort();
-		b = ByteBuffer.allocate(size);
-		readFull(s,b);
-		b.flip();
-		byte[] bytes = new byte[size];
-		b.get(bytes);
-		return  new String(bytes);
-	}
-	
-	/**
-	 * Utility method for writing a String to a SocketChannel.
-	 * @throws IOException 
-	 */
-	public final void writeString(SocketChannel s, String message) throws IOException {
-		byte[] bytes = message.getBytes();
-		short size = (short) bytes.length;
-		ByteBuffer b = ByteBuffer.allocate(size + 2);
-		b.putShort(size);
-		b.put(bytes);
-		b.flip();
-		writeFull(s, b);
-	}
-	
-	/**
-	 * Reads the Packet's data from the stream. Only one instance (of each type)
-	 * should be needed for each ClientConnection, so this method can be called
-	 * on an already sent packet to "reset" it to the next Packet.
-	 */
-	public abstract void read(SocketChannel s) throws IOException;
-	
-	/**
-	 * Writes the Packet to the stream.
-	 */
-	public abstract void write(SocketChannel s) throws IOException;
+	public abstract void write(ByteBuffer b) throws IOException;
 }

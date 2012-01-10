@@ -5,11 +5,12 @@ import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 
 public class ClientConnection implements Runnable {
+	public static final int MAX_PACKET_SIZE = 500;
 	public final RegisteredPackets registeredPackets;
 	
 	private final SocketChannel channel;
-	private final ByteBuffer readId = ByteBuffer.allocateDirect(1);
-	private final ByteBuffer writeId = ByteBuffer.allocateDirect(1);
+	private final ByteBuffer read = ByteBuffer.allocateDirect(MAX_PACKET_SIZE);
+	private final ByteBuffer write = ByteBuffer.allocateDirect(MAX_PACKET_SIZE);
 	
 	/**
 	 * Creates a new connection with the given client.
@@ -30,11 +31,12 @@ public class ClientConnection implements Runnable {
 	 */
 	public Packet readPacket() {
 		try {
-			readId.clear();
-			channel.read(readId);
-			readId.flip();
-			Packet p = Packet.getPacket(readId.get());
-			p.read(channel);
+			NioUtil.read(channel, read, 1);
+			Packet p = Packet.getPacket(read.get());
+			NioUtil.read(channel, read, 2);
+			short length = read.getShort();
+			NioUtil.read(channel, read, length);
+			p.read(read);
 			return p;
 		} catch(IOException e) {
 			e.printStackTrace();
@@ -65,11 +67,14 @@ public class ClientConnection implements Runnable {
 	 */
 	public void sendPacket(Packet p) {
 		try {
-			writeId.clear();
-			writeId.put(Packet.getId(p));
-			writeId.flip();
-			channel.write(writeId);
-			p.write(channel);
+			write.clear();
+			write.put(Packet.getId(p));
+			write.position(3);
+			p.write(write);
+			write.flip();
+			write.position(1);
+			write.putShort((short) ( write.limit()-3));
+			NioUtil.writeFull(channel,write);
 		} catch(IOException e) {
 			e.printStackTrace();
 		} catch(NullPointerException e) {
