@@ -6,7 +6,7 @@ import java.nio.channels.SocketChannel;
 
 public class ClientConnection implements Runnable {
 	public static final int MAX_PACKET_SIZE = 500;
-	public final RegisteredPackets registeredPackets;
+	public final RegisteredPackets packets;
 	
 	private final SocketChannel channel;
 	private final ByteBuffer read = ByteBuffer.allocateDirect(MAX_PACKET_SIZE);
@@ -19,7 +19,7 @@ public class ClientConnection implements Runnable {
 	 * the client.
 	 */
 	public ClientConnection(SocketChannel channel) throws IOException {
-		registeredPackets = new RegisteredPackets(this);
+		packets = new RegisteredPackets(this);
 		
 		this.channel = channel;
 		System.out.println(channel);
@@ -32,7 +32,7 @@ public class ClientConnection implements Runnable {
 	public Packet readPacket() {
 		try {
 			NioUtil.read(channel, read, 1);
-			Packet p = Packet.getPacket(read.get());
+			Packet p = packets.getPacket(read.get());
 			NioUtil.read(channel, read, 2);
 			short length = read.getShort();
 			NioUtil.read(channel, read, length);
@@ -68,7 +68,7 @@ public class ClientConnection implements Runnable {
 	public void sendPacket(Packet p) {
 		try {
 			write.clear();
-			write.put(Packet.getId(p));
+			write.put(packets.getId(p));
 			write.position(3);
 			p.write(write);
 			write.flip();
@@ -91,7 +91,7 @@ public class ClientConnection implements Runnable {
 			Packet recieved = readPacket();
 			recieved.run();
 		}
-		sendPacket(registeredPackets.getDisconnect());
+		sendPacket(packets.getDisconnect());
 		disconnect();
 	}
 }

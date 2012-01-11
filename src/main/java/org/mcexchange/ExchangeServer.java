@@ -128,7 +128,7 @@ public class ExchangeServer implements Runnable {
 	 */
 	public void broadcastMessage(String message) {
 		for(ClientConnection c : connections) {
-			MessagePacket mp = c.registeredPackets.getMessage();
+			MessagePacket mp = c.packets.getMessage();
 			mp.setMessage(message);
 			c.sendPacket(mp);
 		}

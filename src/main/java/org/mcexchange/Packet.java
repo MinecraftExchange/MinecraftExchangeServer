@@ -3,43 +3,8 @@ package org.mcexchange;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 
-import org.apache.commons.collections.BidiMap;
-import org.apache.commons.collections.bidimap.DualHashBidiMap;
-
 public abstract class Packet implements Runnable {
-	//packet map.
-	private static final BidiMap packets = new DualHashBidiMap();
 	private final ClientConnection cc;
-	
-	/**
-	 * Maps a Packet to an id.
-	 */
-	public static void assignId(byte id, Packet packet) {
-		packets.put(id,packet);
-	}
-	
-	/**
-	 * Unmaps a Packet to an id.
-	 */
-	public static void removeId(Packet packet) {
-		packets.remove(packet);
-	}
-	
-	/**
-	 * Gets a packet's id (none, if it hasn't been mapped to
-	 * one yet).
-	 */
-	public static byte getId(Packet packet) {
-		return (Byte) packets.getKey(packet);
-	}
-	
-	/**
-	 * Gets an id's packet (none if no Packet has been mapped
-	 * to this id).
-	 */
-	public static Packet getPacket(byte id) {
-		return (Packet) packets.get(id);
-	}
 	
 	/**
 	 * Creates a Packet for the given ClientConnection.
