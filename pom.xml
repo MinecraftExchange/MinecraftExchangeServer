@@ -3,11 +3,11 @@
   <modelVersion>4.0.0</modelVersion>
 
   <groupId>org.mcexchange</groupId>
-  <artifactId>ExchangeBukkit</artifactId>
+  <artifactId>ExchangeServer</artifactId>
   <version>dev-SNAPSHOT</version>
   <packaging>jar</packaging>
 
-  <name>ExchangeBukkit</name>
+  <name>ExchangeServe</name>
 
   <properties>
     <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -25,8 +25,15 @@
     	<artifactId>commons-collections</artifactId>
     	<version>3.2.1</version>
     </dependency>
+    <dependency>
+    	<groupId>org.mcexchange</groupId>
+    	<artifactId>ExchangeAPI</artifactId>
+    	<version>dev-SNAPSHOT</version>
+    	<type>jar</type>
+    	<scope>compile</scope>
+    </dependency>
   </dependencies>
-  <description>An implementation of a Stock Market in minecraft. This version runs with Bukkit.</description>
+  <description>An implementation of a Stock Market in minecraft. This is the standalone server.</description>
   <build>
   	<plugins>
   		<plugin>

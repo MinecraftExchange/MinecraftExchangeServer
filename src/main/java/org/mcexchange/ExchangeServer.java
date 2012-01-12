@@ -6,6 +6,9 @@ import java.nio.channels.ServerSocketChannel;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.mcexchange.api.Connection;
+import org.mcexchange.api.MessagePacket;
+
 public class ExchangeServer implements Runnable {
 	//------------------------------//
 	//    STATIC/SINGLETON STUFF    //
@@ -32,7 +35,7 @@ public class ExchangeServer implements Runnable {
 	private int port = DEFAULT_PORT;
 	private ServerSocketChannel socket = null;
 	private final ArrayList<Thread> threads = new ArrayList<Thread>();
-	private final ArrayList<ClientConnection> connections = new ArrayList<ClientConnection>();
+	private final ArrayList<Connection> connections = new ArrayList<Connection>();
 	
 	//private constructor ensuring that this is the only instance.
 	private ExchangeServer() {
@@ -69,7 +72,7 @@ public class ExchangeServer implements Runnable {
 	 * that this list is NOT copied so any changes here will affect the whole
 	 * Server.
 	 */
-	public List<ClientConnection> getConnections() {
+	public List<Connection> getConnections() {
 		return connections;
 	}
 	
@@ -97,7 +100,7 @@ public class ExchangeServer implements Runnable {
 		System.out.println("Listening for client connections.");
 		while(listening) {
 			try {
-				ClientConnection cc = new ClientConnection(socket.accept());
+				Connection cc = new Connection(socket.accept());
 				Thread t = new Thread(cc);
 				t.start();
 				connections.add(cc);
@@ -127,7 +130,7 @@ public class ExchangeServer implements Runnable {
 	 * Send a message to every client.
 	 */
 	public void broadcastMessage(String message) {
-		for(ClientConnection c : connections) {
+		for(Connection c : connections) {
 			MessagePacket mp = c.packets.getMessage();
 			mp.setMessage(message);
 			c.sendPacket(mp);
