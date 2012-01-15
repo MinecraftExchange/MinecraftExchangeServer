@@ -26,11 +26,13 @@ public class Main {
 		log.addHandler(c);
 		System.setOut(new PrintStream(new LoggerOutputStream(log, Level.INFO), true));
 		System.setErr(new PrintStream(new LoggerOutputStream(log, Level.SEVERE), true));
-		log.info("Starting minecraft exchange server version 0.1");
+		log.info("Starting minecraft exchange server version 0.2");
 		//Create server.
 		ExchangeServer es = ExchangeServer.getInstance();
 		log.info("Loading properties.");
 		es.loadProperties(args);
+		log.info("Loading plugins.");
+		es.loadPlugins();
 		Thread t = new Thread(es);
 		t.start();
 		//Listen for input.
@@ -58,7 +60,6 @@ public class Main {
 		System.out.println("Shutting down server.");
 		t.interrupt();
 		System.exit(0);
-		//we don't want to exit. The Threads need a chance to shut down.
 	}
 	
 	/**

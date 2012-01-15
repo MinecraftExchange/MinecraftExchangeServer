@@ -4,12 +4,20 @@ import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.nio.channels.ServerSocketChannel;
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 import org.mcexchange.api.Connection;
 import org.mcexchange.api.MessagePacket;
+import org.mcexchange.api.plugin.ConnectionPlugin;
+import org.mcexchange.api.plugin.ExchangePlugin;
+import org.mcexchange.api.plugin.ExchangePluginLoader;
+import org.mcexchange.api.plugin.PluginPlugin;
 
-public class ExchangeServer implements Runnable {
+public class ExchangeServer implements Runnable, ConnectionPlugin {
 	//------------------------------//
 	//    STATIC/SINGLETON STUFF    //
 	//------------------------------//
@@ -34,8 +42,7 @@ public class ExchangeServer implements Runnable {
 	private boolean listening = false;
 	private int port = DEFAULT_PORT;
 	private ServerSocketChannel socket = null;
-	private final ArrayList<Thread> threads = new ArrayList<Thread>();
-	private final ArrayList<Connection> connections = new ArrayList<Connection>();
+	private final Map<Connection,Thread> connections = new HashMap<Connection,Thread>();
 	
 	//private constructor ensuring that this is the only instance.
 	private ExchangeServer() {
@@ -51,6 +58,34 @@ public class ExchangeServer implements Runnable {
 		sp = new ServerProperties(override);
 	}
 	
+	public void loadPlugins() {
+		ExchangePluginLoader epl = new ExchangePluginLoader();
+		List<ExchangePlugin> plugins =  epl.loadAllPlugins();
+		plugins.add(this);//we need to recieve notifications of when a connection closes :)
+		for(ExchangePlugin ep : plugins) {
+			Class<?>[] interfaces = ep.getClass().getInterfaces();
+			for(Class<?> i : interfaces) {
+				if(!ExchangePlugin.class.isAssignableFrom(i)) continue;
+				if(ExchangePlugin.plugins.containsKey(i)) {
+					ExchangePlugin.plugins.get(i).add(ep);
+				} else {
+					List<ExchangePlugin> lep = new ArrayList<ExchangePlugin>();
+					lep.add(ep);
+					Class<? extends ExchangePlugin> clazz = i.asSubclass(ExchangePlugin.class);
+					ExchangePlugin.plugins.put(clazz, lep);
+				}
+			}
+		}
+		//register PluginPlugins
+		for(ExchangePlugin ep : ExchangePlugin.plugins.get(PluginPlugin.class)) {
+			PluginPlugin pp = ((PluginPlugin) ep);
+			Class<? extends ExchangePlugin>[] clazz  = pp.getPlugins();
+			for(Class<? extends ExchangePlugin> cp : clazz) {
+				for(ExchangePlugin exp : ExchangePlugin.plugins.get(cp)) pp.registerPlugin(exp);
+			}
+		}
+	}
+	
 	/**
 	 * Get the server properties object.
 	 */
@@ -63,8 +98,8 @@ public class ExchangeServer implements Runnable {
 	 * in. It is important to note that this list is NOT copied so any changes
 	 * here will affect the whole server.
 	 */
-	public List<Thread> getThreads() {
-		return threads;
+	public Collection<Thread> getThreads() {
+		return connections.values();
 	}
 	
 	/**
@@ -72,8 +107,8 @@ public class ExchangeServer implements Runnable {
 	 * that this list is NOT copied so any changes here will affect the whole
 	 * Server.
 	 */
-	public List<Connection> getConnections() {
-		return connections;
+	public Set<Connection> getConnections() {
+		return connections.keySet();
 	}
 	
 	/**
@@ -103,9 +138,9 @@ public class ExchangeServer implements Runnable {
 				Connection cc = new Connection(socket.accept());
 				Thread t = new Thread(cc);
 				t.start();
-				connections.add(cc);
-				threads.add(t);
+				connections.put(cc,t);
 				System.out.println("Succesfully connected to client " + cc);
+				for(ExchangePlugin p : ExchangePlugin.plugins.get(ConnectionPlugin.class)) ((ConnectionPlugin) p).onConnectionEstablished(cc);
 			} catch (IOException e) {
 				System.err.println("Could not connect to client.");
 				e.printStackTrace();
@@ -130,10 +165,24 @@ public class ExchangeServer implements Runnable {
 	 * Send a message to every client.
 	 */
 	public void broadcastMessage(String message) {
-		for(Connection c : connections) {
+		for(Connection c : getConnections()) {
 			MessagePacket mp = c.packets.getMessage();
 			mp.setMessage(message);
 			c.sendPacket(mp);
 		}
+	}
+
+	/**
+	 * This class has to implement ConnectionPlugin so that it knows when
+	 * a connection terminates. This specific method is unused seeing as
+	 * this class establishes the connections.
+	 */
+	public void onConnectionEstablished(Connection c) { }
+	
+	/**
+	 * Removes a closed connection from the connection list.
+	 */
+	public void onConnectionEnd(Connection c) {
+		connections.remove(c);
 	}
 }
