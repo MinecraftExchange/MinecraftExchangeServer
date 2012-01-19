@@ -1,4 +1,4 @@
-package org.mcexchange;
+package org.mcexchange.server;
 
 import java.io.BufferedInputStream;
 import java.io.BufferedOutputStream;

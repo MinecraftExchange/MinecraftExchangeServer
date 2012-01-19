@@ -1,4 +1,4 @@
-package org.mcexchange;
+package org.mcexchange.server;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -77,11 +77,16 @@ public class ExchangeServer implements Runnable, ConnectionPlugin {
 			}
 		}
 		//register PluginPlugins
-		for(ExchangePlugin ep : ExchangePlugin.plugins.get(PluginPlugin.class)) {
+		List<ExchangePlugin> pluginplugins = ExchangePlugin.plugins.get(PluginPlugin.class);
+		if(pluginplugins==null) return;
+		for(ExchangePlugin ep : pluginplugins) {
 			PluginPlugin pp = ((PluginPlugin) ep);
 			Class<? extends ExchangePlugin>[] clazz  = pp.getPlugins();
+			if(clazz == null) continue;
 			for(Class<? extends ExchangePlugin> cp : clazz) {
-				for(ExchangePlugin exp : ExchangePlugin.plugins.get(cp)) pp.registerPlugin(exp);
+				List<ExchangePlugin> cps = ExchangePlugin.plugins.get(cp);
+				if(cps == null) continue;
+				for(ExchangePlugin exp : cps) pp.registerPlugin(exp);
 			}
 		}
 	}
